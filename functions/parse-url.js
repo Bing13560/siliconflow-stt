@@ -1,37 +1,19 @@
-export async function onRequest(context) {
-  // 只允许 POST 请求
-  if (context.request.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 });
-  }
+import { getVideoUrl } from '../../douyinVd-main/douyin.ts';
 
+export async function onRequestPost({ request }) {
   try {
-    const { url } = await context.request.json();
-    if (!url || !url.startsWith('http')) {
-      return new Response('A valid URL is required', { status: 400 });
+    const { url } = await request.json();
+    if (!url) {
+      return new Response('URL is required', { status: 400 });
     }
 
-    const resolverUrl = `https://brhiza-douyinvd-67.deno.dev/?url=${encodeURIComponent(url)}`;
+    const directUrl = await getVideoUrl(url);
 
-    const response = await fetch(resolverUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
-    });
-
-    if (!response.ok) {
-      // 将外部服务的错误状态转发给客户端
-      return new Response(`Failed to resolve URL: ${response.statusText}`, { status: response.status });
-    }
-
-    const directVideoUrl = await response.text();
-
-    // 将直链作为 JSON 返回
-    return new Response(JSON.stringify({ directUrl: directVideoUrl }), {
+    return new Response(JSON.stringify({ directUrl }), {
       headers: { 'Content-Type': 'application/json' },
     });
-
   } catch (error) {
-    console.error('Error in /parse-url:', error);
-    return new Response('Internal Server Error', { status: 500 });
+    console.error('Error parsing Douyin URL:', error);
+    return new Response(error.message || 'Failed to resolve URL', { status: 500 });
   }
 }

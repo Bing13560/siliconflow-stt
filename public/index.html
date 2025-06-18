@@ -1497,7 +1497,6 @@
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
                 const data = await res.json();
-                if (data.error) throw new Error(data.error);
                 resultArea.value = data.text;
 
                 resultBox.classList.add('active');
@@ -1605,7 +1604,6 @@
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
                 const data = await res.json();
-                if (data.error) throw new Error(data.error);
                 resultArea.value = data.text;
 
                 resultBox.classList.add('active');
