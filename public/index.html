@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <script src="https://cdn.jsdelivr.net/npm/spark-md5@3.0.2/spark-md5.min.js"></script>
-    <title>SiliconFlow | 智能语音转文字</title>
+    <title>wofew | 智能语音转文字</title>
     <style>
         :root {
             --primary: #4361ee;
@@ -865,7 +865,7 @@
     </a>
     <div class="container">
         <header>
-            <h1><span>SiliconFlow</span> 语音转文字</h1>
+            <h1><span>wofew</span> 语音转文字</h1>
         </header>
 
         <div class="card">
@@ -947,8 +947,10 @@
                     style="width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid #c7d2fe; transition: all 0.2s; font-size: 0.95rem; background: rgba(247, 249, 254, 0.6);"
                     placeholder="在此处粘贴视频或抖音分享链接">
             </div>
-            <div style="margin-top: 16px; text-align: center;">
-                <button class="btn" id="douyinParseBtn">抖音解析转写</button>
+            <div style="margin-top: 16px; text-align: center; display: flex; justify-content: center; align-items: center; gap: 12px;">
+                <button class="btn" id="douyinParseBtn" style="flex-grow: 1;">抖音解析转写</button>
+                <a href="#" id="downloadVideoBtn" class="btn" style="display: none; background: #f59e0b; flex-grow: 0.5;" download>下载视频</a>
+                <a href="#" id="downloadAudioBtn" class="btn" style="display: none; background: #8b5cf6; flex-grow: 0.5;" download>下载音频</a>
             </div>
 
             <div id="status">
@@ -1009,6 +1011,8 @@
         const extractionNoticeText = document.getElementById('extractionNoticeText');
         const videoUrlInput = document.getElementById('videoUrlInput');
         const douyinParseBtn = document.getElementById('douyinParseBtn');
+        const downloadVideoBtn = document.getElementById('downloadVideoBtn');
+        const downloadAudioBtn = document.getElementById('downloadAudioBtn');
 
         // 检查文件是否为视频格式
         function isVideoFile(file) {
@@ -1339,6 +1343,8 @@
             const file = fileInput.files[0];
             const fileInfoArea = document.getElementById('fileInfoArea');
             fileInfoArea.innerHTML = `<span id="fileName">未选择任何文件</span>`;
+            downloadVideoBtn.style.display = 'none';
+            downloadAudioBtn.style.display = 'none';
             if (!file) {
                 updateAuthUI(isVerified);
                 return;
@@ -1537,11 +1543,14 @@
             }
 
             douyinParseBtn.disabled = true;
+            downloadVideoBtn.style.display = 'none';
+            downloadAudioBtn.style.display = 'none';
             resultArea.value = '';
             copyBtn.classList.add('hidden');
             resultBox.classList.remove('active');
             statusDiv.classList.add('active');
             cacheNotice.classList.remove('visible');
+            fileNameDiv.textContent = ''; // 清除文件名显示
 
             let seconds = 0;
             timerSpan.textContent = '0s';
@@ -1599,6 +1608,12 @@
                 if (!videoResponse.ok) throw new Error('通过代理下载视频文件失败');
                 const videoBlob = await videoResponse.blob();
 
+                // 使“下载视频”按钮可用
+                downloadVideoBtn.href = URL.createObjectURL(videoBlob);
+                downloadVideoBtn.download = `douyin_video_${Date.now()}.mp4`;
+                downloadVideoBtn.style.display = 'inline-flex';
+
+
                 // 5. 在前端提取音频
                 // 我们需要给 videoBlob 一个 name 属性，以便 extractAudioFromVideo 函数使用
                 videoBlob.name = `douyin_video_${Date.now()}.mp4`;
@@ -1606,6 +1621,11 @@
                     throw new Error("操作取消：文件过大。");
                 }
                 const audioWavBlob = await extractAudioFromVideo(videoBlob);
+
+                // 使“下载音频”按钮可用
+                downloadAudioBtn.href = URL.createObjectURL(audioWavBlob);
+                downloadAudioBtn.download = `douyin_audio_${Date.now()}.wav`;
+                downloadAudioBtn.style.display = 'inline-flex';
 
                 // 6. 上传提取出的音频文件
                 extractionNoticeText.textContent = '正在上传音频并转写...';
