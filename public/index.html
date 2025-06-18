@@ -930,6 +930,14 @@
                     </div>
                 </div>
 
+                <div style="text-align: center; margin: 12px 0; color: var(--text-secondary); font-size: 0.9rem;">或</div>
+
+                <div class="url-input-area" style="margin-bottom: 16px; position: relative;">
+                    <input type="text" id="videoUrlInput"
+                        style="width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid #c7d2fe; transition: all 0.2s; font-size: 0.95rem; background: rgba(247, 249, 254, 0.6);"
+                        placeholder="在此处粘贴视频或抖音分享链接">
+                </div>
+
                 <div id="fileInfoArea"
                     style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary); text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px;">
                     <span id="fileName">未选择任何文件</span>
@@ -1434,28 +1442,26 @@
                 return;
             }
 
-            const cachedRaw = localStorage.getItem(cacheKey);
-            if (cacheKey && cachedRaw) {
-                try {
-                    const cachedData = JSON.parse(cachedRaw);
-                    const originalFile = fileInput.originalFile || fileInput.files[0];
-                    if (cachedData.originalName === originalFile.name) {
-                        console.log('转写请求被拦截，直接从缓存恢复。');
-                        window.restoreRecord(cacheKey);
-                        return;
-                    }
-                } catch (err) {
-                    console.error("提交时检查缓存出错:", err);
-                }
-            }
+            const videoUrlInput = document.getElementById('videoUrlInput');
+            const videoUrl = videoUrlInput.value.trim();
+            const file = fileInput.files[0];
 
-            cacheNotice.classList.remove('visible');
+            if (!videoUrl && !file) {
+                alert('请选择一个文件或粘贴一个链接');
+                return;
+            }
+            
+            if (videoUrl && file) {
+                alert('请仅使用文件或链接之一，清除另一个后再试。');
+                return;
+            }
 
             submitBtn.disabled = true;
             resultArea.value = '';
             copyBtn.classList.add('hidden');
             resultBox.classList.remove('active');
             statusDiv.classList.add('active');
+            cacheNotice.classList.remove('visible');
 
             let seconds = 0;
             timerSpan.textContent = '0s';
@@ -1465,13 +1471,73 @@
             }, 1000);
 
             try {
-                const formData = new FormData(uploadForm);
-                formData.delete('file');
+                let fileToUpload;
+                let originalFile;
+                let currentCacheKey;
 
-                const fileToUpload = fileInput.processedFile || fileInput.files[0];
-                const originalFile = fileInput.originalFile || fileInput.files[0];
+                if (videoUrl) {
+                    const urlRegex = /(https?:\/\/[^\s]+)/g;
+                    const matches = videoUrl.match(urlRegex);
+                    if (!matches) throw new Error('未在输入中找到有效的URL');
 
+                    const extractedUrl = matches[0];
+                    const finalUrl = `https://brhiza-douyinvd-67.deno.dev/?url=${encodeURIComponent(extractedUrl)}`;
+
+                    extractionNotice.classList.add('visible');
+                    extractionNoticeText.textContent = '正在从链接下载内容...';
+
+                    const response = await fetch(finalUrl);
+                    if (!response.ok) throw new Error(`下载失败 (HTTP ${response.status})`);
+
+                    const blob = await response.blob();
+                    // Use a more descriptive name for the downloaded file if possible
+                    let fileName = "downloaded_file";
+                    try {
+                        const contentDisposition = response.headers.get('content-disposition');
+                        if (contentDisposition) {
+                            const match = contentDisposition.match(/filename="?([^"]+)"?/);
+                            if (match) fileName = match[1];
+                        }
+                    } catch(e) { /* ignore */ }
+
+                    const downloadedFile = new File([blob], fileName, { type: blob.type });
+                    
+                    originalFile = downloadedFile;
+                    originalFile.nameForCache = extractedUrl; // Use URL as the original name for caching
+
+                    if (isVideoFile(downloadedFile)) {
+                        fileToUpload = await extractAudioFromVideo(downloadedFile);
+                        fileToUpload.name = 'extracted_audio.wav';
+                    } else if (isSupportedAudioFile(downloadedFile)) {
+                        fileToUpload = downloadedFile;
+                    } else {
+                        throw new Error('链接指向的文件格式不受支持');
+                    }
+                } else {
+                    fileToUpload = fileInput.processedFile || file;
+                    originalFile = fileInput.originalFile || file;
+                    originalFile.nameForCache = originalFile.name;
+                }
+
+                const arrayBufferForHash = await fileToUpload.arrayBuffer();
+                const md5 = SparkMD5.ArrayBuffer.hash(arrayBufferForHash);
+                currentCacheKey = `sf_cache_${md5}`;
+
+                const cachedRaw = localStorage.getItem(currentCacheKey);
+                if (cachedRaw) {
+                    const cachedData = JSON.parse(cachedRaw);
+                    if (cachedData.originalName === originalFile.nameForCache) {
+                        window.restoreRecord(currentCacheKey);
+                        clearInterval(timerInterval);
+                        statusDiv.classList.remove('active');
+                        submitBtn.disabled = !isVerified;
+                        return;
+                    }
+                }
+
+                const formData = new FormData();
                 formData.append('file', fileToUpload, fileToUpload.name || 'extracted_audio.wav');
+                formData.append('model', 'FunAudioLLM/SenseVoiceSmall');
 
                 const res = await fetch('/transcribe', { method: 'POST', body: formData });
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -1482,17 +1548,15 @@
                 resultBox.classList.add('active');
                 copyBtn.classList.remove('hidden');
 
-                if (cacheKey) {
-                    const payload = {
-                        name: fileToUpload.name || 'extracted_audio.wav',
-                        originalName: originalFile.name,
-                        size: fileToUpload.size,
-                        text: data.text,
-                        timestamp: Date.now(),
-                        isExtracted: !!fileInput.processedFile
-                    };
-                    localStorage.setItem(cacheKey, JSON.stringify(payload));
-                }
+                const payload = {
+                    name: fileToUpload.name || 'extracted_audio.wav',
+                    originalName: originalFile.nameForCache,
+                    size: fileToUpload.size,
+                    text: data.text,
+                    timestamp: Date.now(),
+                    isExtracted: !!fileInput.processedFile || !!videoUrl
+                };
+                localStorage.setItem(currentCacheKey, JSON.stringify(payload));
 
             } catch (err) {
                 console.error('转写失败:', err);
@@ -1501,7 +1565,8 @@
             } finally {
                 clearInterval(timerInterval);
                 statusDiv.classList.remove('active');
-                submitBtn.disabled = false;
+                extractionNotice.classList.remove('visible');
+                submitBtn.disabled = !isVerified;
             }
         });
 
