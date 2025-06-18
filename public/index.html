@@ -1254,7 +1254,7 @@
               ${cacheRecords.map((record) => `
                 <tr>
                   <td title="${record.name}">${truncateText(record.name, 20)}</td>
-                  <td>${(record.size / 1024 / 1024).toFixed(2)}MB</td>
+                  <td>${record.size > 0 ? (record.size / 1024 / 1024).toFixed(2) + 'MB' : '来自链接'}</td>
                   <td>${formatDate(record.timestamp)}</td>
                   <td class="text-preview" data-full-text="${record.text}" title="${record.text}">
                     ${truncateText(record.text, 30)}
@@ -1497,9 +1497,8 @@
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
                 const data = await res.json();
-                console.log('Debug Response from /transcribe (file upload):', data);
-                resultArea.value = data.originalResponse ? data.originalResponse.text : JSON.stringify(data);
-
+                if (data.error) throw new Error(data.error);
+                resultArea.value = data.text;
 
                 resultBox.classList.add('active');
                 copyBtn.classList.remove('hidden');
@@ -1606,8 +1605,8 @@
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
                 const data = await res.json();
-                console.log('Debug Response from /transcribe (URL):', data);
-                resultArea.value = data.originalResponse ? data.originalResponse.text : JSON.stringify(data);
+                if (data.error) throw new Error(data.error);
+                resultArea.value = data.text;
 
                 resultBox.classList.add('active');
                 copyBtn.classList.remove('hidden');
