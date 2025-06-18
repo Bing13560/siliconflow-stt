@@ -1,4 +1,4 @@
-import { getVideoUrl } from '../../douyinVd-main/douyin.ts';
+import { getVideoUrl } from './utils/douyin.ts';
 
 export async function onRequestPost({ request }) {
   try {
