@@ -924,18 +924,9 @@
                     </div>
                     <span class="upload-text">拖放文件到此处 或</span>
                     <div>
-                        <input type="file" id="fileInput" name="file" accept="audio/*,video/*" required
-                            style="display: none;" />
+                        <input type="file" id="fileInput" name="file" accept="audio/*,video/*" style="display: none;" />
                         <label for="fileInput" id="fileInputLabel">选择文件</label>
                     </div>
-                </div>
-
-                <div style="text-align: center; margin: 12px 0; color: var(--text-secondary); font-size: 0.9rem;">或</div>
-
-                <div class="url-input-area" style="margin-bottom: 16px; position: relative;">
-                    <input type="text" id="videoUrlInput"
-                        style="width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid #c7d2fe; transition: all 0.2s; font-size: 0.95rem; background: rgba(247, 249, 254, 0.6);"
-                        placeholder="在此处粘贴视频或抖音分享链接">
                 </div>
 
                 <div id="fileInfoArea"
@@ -948,6 +939,17 @@
                     <button class="btn" type="submit" id="submitBtn">开始语音转写</button>
                 </div>
             </form>
+
+            <div style="text-align: center; margin: 20px 0; color: var(--text-secondary); font-size: 0.9rem;">或</div>
+
+            <div class="url-input-area" style="margin-bottom: 16px; position: relative;">
+                <input type="text" id="videoUrlInput"
+                    style="width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid #c7d2fe; transition: all 0.2s; font-size: 0.95rem; background: rgba(247, 249, 254, 0.6);"
+                    placeholder="在此处粘贴视频或抖音分享链接">
+            </div>
+            <div style="margin-top: 16px; text-align: center;">
+                <button class="btn" id="douyinParseBtn">抖音解析转写</button>
+            </div>
 
             <div id="status">
                 <div class="spinner"></div>
@@ -1006,6 +1008,7 @@
         const extractionNotice = document.getElementById('extractionNotice');
         const extractionNoticeText = document.getElementById('extractionNoticeText');
         const videoUrlInput = document.getElementById('videoUrlInput');
+        const douyinParseBtn = document.getElementById('douyinParseBtn');
 
         // 检查文件是否为视频格式
         function isVideoFile(file) {
@@ -1145,11 +1148,13 @@
             if (verified) {
                 verifyBtn.textContent = '已验证';
                 verifyBtn.classList.add('verified');
-                submitBtn.disabled = !fileInput.files[0] && !fileInput.processedFile && !videoUrlInput.value.trim();
+                submitBtn.disabled = !fileInput.files[0] && !fileInput.processedFile;
+                douyinParseBtn.disabled = false;
             } else {
                 verifyBtn.textContent = '口令验证';
                 verifyBtn.classList.remove('verified');
                 submitBtn.disabled = true;
+                douyinParseBtn.disabled = true;
             }
             authStatus.textContent = '';
             authStatus.className = 'auth-status';
@@ -1332,9 +1337,6 @@
 
         fileInput.addEventListener('change', async () => {
             const file = fileInput.files[0];
-            if (file) {
-                videoUrlInput.value = '';
-            }
             const fileInfoArea = document.getElementById('fileInfoArea');
             fileInfoArea.innerHTML = `<span id="fileName">未选择任何文件</span>`;
             if (!file) {
@@ -1446,24 +1448,9 @@
                 return;
             }
 
-            const videoUrlInput = document.getElementById('videoUrlInput');
-            const videoUrl = videoUrlInput.value.trim();
             const file = fileInput.files[0];
-
-            // 根据输入方式动态调整 required 属性，防止表单验证错误
-            if (videoUrl) {
-                fileInput.required = false;
-            } else {
-                fileInput.required = true;
-            }
-
-            if (!videoUrl && !file) {
-                alert('请选择一个文件或粘贴一个链接');
-                return;
-            }
-            
-            if (videoUrl && file) {
-                alert('请仅使用文件或链接之一，清除另一个后再试。');
+            if (!file) {
+                alert('请选择一个文件');
                 return;
             }
 
@@ -1482,66 +1469,13 @@
             }, 1000);
 
             try {
-                let fileToUpload;
-                let originalFile;
-                let currentCacheKey;
-
-                if (videoUrl) {
-                    const urlRegex = /(https?:\/\/[^\s]+)/g;
-                    const matches = videoUrl.match(urlRegex);
-                    if (!matches) throw new Error('未在输入中找到有效的URL');
-
-                    const extractedUrl = matches[0];
-                    const resolverUrl = `https://brhiza-douyinvd-67.deno.dev/?url=${encodeURIComponent(extractedUrl)}`;
-
-                    extractionNotice.classList.add('visible');
-                    extractionNoticeText.textContent = '正在解析视频直链...';
-
-                    const resolverResponse = await fetch(resolverUrl);
-                    if (!resolverResponse.ok) throw new Error(`解析失败 (HTTP ${resolverResponse.status})`);
-                    const directVideoUrl = await resolverResponse.text();
-
-                    if (!directVideoUrl.startsWith('http')) {
-                        throw new Error('无法从API返回中解析出有效的视频直链');
-                    }
-
-                    extractionNoticeText.textContent = '正在从直链下载内容...';
-                    const response = await fetch(directVideoUrl);
-                    if (!response.ok) throw new Error(`下载失败 (HTTP ${response.status})`);
-
-                    const blob = await response.blob();
-                    // Use a more descriptive name for the downloaded file if possible
-                    let fileName = "downloaded_file";
-                    try {
-                        const contentDisposition = response.headers.get('content-disposition');
-                        if (contentDisposition) {
-                            const match = contentDisposition.match(/filename="?([^"]+)"?/);
-                            if (match) fileName = match[1];
-                        }
-                    } catch (e) { /* ignore */ }
-
-                    const downloadedFile = new File([blob], fileName, { type: blob.type });
-                    
-                    originalFile = downloadedFile;
-                    originalFile.nameForCache = extractedUrl; // Use URL as the original name for caching
-
-                    if (isVideoFile(downloadedFile)) {
-                        fileToUpload = await extractAudioFromVideo(downloadedFile);
-                        fileToUpload.name = 'extracted_audio.wav';
-                    } else if (isSupportedAudioFile(downloadedFile)) {
-                        fileToUpload = downloadedFile;
-                    } else {
-                        throw new Error('链接指向的文件格式不受支持');
-                    }
-                } else {
-                    fileToUpload = fileInput.processedFile || file;
-                    originalFile = fileInput.originalFile || file;
-                    originalFile.nameForCache = originalFile.name;
-                }
+                let fileToUpload = fileInput.processedFile || file;
+                let originalFile = fileInput.originalFile || file;
+                originalFile.nameForCache = originalFile.name;
 
                 const arrayBufferForHash = await fileToUpload.arrayBuffer();
                 const md5 = SparkMD5.ArrayBuffer.hash(arrayBufferForHash);
-                currentCacheKey = `sf_cache_${md5}`;
+                const currentCacheKey = `sf_cache_${md5}`;
 
                 const cachedRaw = localStorage.getItem(currentCacheKey);
                 if (cachedRaw) {
@@ -1574,7 +1508,7 @@
                     size: fileToUpload.size,
                     text: data.text,
                     timestamp: Date.now(),
-                    isExtracted: !!fileInput.processedFile || !!videoUrl
+                    isExtracted: !!fileInput.processedFile
                 };
                 localStorage.setItem(currentCacheKey, JSON.stringify(payload));
 
@@ -1587,9 +1521,135 @@
                 statusDiv.classList.remove('active');
                 extractionNotice.classList.remove('visible');
                 submitBtn.disabled = !isVerified;
-                fileInput.required = true; // 恢复 required 属性
             }
         });
+
+        async function transcribeFromUrl() {
+            if (!isVerified) {
+                alert('请先完成口令验证');
+                return;
+            }
+
+            const videoUrl = videoUrlInput.value.trim();
+            if (!videoUrl) {
+                alert('请粘贴一个链接');
+                return;
+            }
+
+            douyinParseBtn.disabled = true;
+            resultArea.value = '';
+            copyBtn.classList.add('hidden');
+            resultBox.classList.remove('active');
+            statusDiv.classList.add('active');
+            cacheNotice.classList.remove('visible');
+
+            let seconds = 0;
+            timerSpan.textContent = '0s';
+            timerInterval = setInterval(() => {
+                seconds++;
+                timerSpan.textContent = `${seconds}s`;
+            }, 1000);
+
+            try {
+                const urlRegex = /(https?:\/\/[^\s]+)/g;
+                const matches = videoUrl.match(urlRegex);
+                if (!matches) throw new Error('未在输入中找到有效的URL');
+
+                const extractedUrl = matches[0];
+                const resolverUrl = `https://brhiza-douyinvd-67.deno.dev/?url=${encodeURIComponent(extractedUrl)}`;
+
+                extractionNotice.classList.add('visible');
+                extractionNoticeText.textContent = '正在解析视频直链...';
+
+                const resolverResponse = await fetch(resolverUrl);
+                if (!resolverResponse.ok) throw new Error(`解析失败 (HTTP ${resolverResponse.status})`);
+                const directVideoUrl = await resolverResponse.text();
+
+                if (!directVideoUrl.startsWith('http')) {
+                    throw new Error('无法从API返回中解析出有效的视频直链');
+                }
+
+                extractionNoticeText.textContent = '正在从直链下载内容...';
+                const response = await fetch(directVideoUrl);
+                if (!response.ok) throw new Error(`下载失败 (HTTP ${response.status})`);
+
+                const blob = await response.blob();
+                let fileName = "downloaded_file";
+                try {
+                    const contentDisposition = response.headers.get('content-disposition');
+                    if (contentDisposition) {
+                        const match = contentDisposition.match(/filename="?([^"]+)"?/);
+                        if (match) fileName = match[1];
+                    }
+                } catch (e) { /* ignore */ }
+
+                const downloadedFile = new File([blob], fileName, { type: blob.type });
+                
+                let originalFile = downloadedFile;
+                originalFile.nameForCache = extractedUrl;
+
+                let fileToUpload;
+                if (isVideoFile(downloadedFile)) {
+                    fileToUpload = await extractAudioFromVideo(downloadedFile);
+                    fileToUpload.name = 'extracted_audio.wav';
+                } else if (isSupportedAudioFile(downloadedFile)) {
+                    fileToUpload = downloadedFile;
+                } else {
+                    throw new Error('链接指向的文件格式不受支持');
+                }
+
+                const arrayBufferForHash = await fileToUpload.arrayBuffer();
+                const md5 = SparkMD5.ArrayBuffer.hash(arrayBufferForHash);
+                const currentCacheKey = `sf_cache_${md5}`;
+
+                const cachedRaw = localStorage.getItem(currentCacheKey);
+                if (cachedRaw) {
+                    const cachedData = JSON.parse(cachedRaw);
+                    if (cachedData.originalName === originalFile.nameForCache) {
+                        window.restoreRecord(currentCacheKey);
+                        clearInterval(timerInterval);
+                        statusDiv.classList.remove('active');
+                        douyinParseBtn.disabled = !isVerified;
+                        return;
+                    }
+                }
+
+                const formData = new FormData();
+                formData.append('file', fileToUpload, fileToUpload.name || 'extracted_audio.wav');
+                formData.append('model', 'FunAudioLLM/SenseVoiceSmall');
+
+                const res = await fetch('/transcribe', { method: 'POST', body: formData });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+                const data = await res.json();
+                resultArea.value = data.text;
+
+                resultBox.classList.add('active');
+                copyBtn.classList.remove('hidden');
+
+                const payload = {
+                    name: fileToUpload.name || 'extracted_audio.wav',
+                    originalName: originalFile.nameForCache,
+                    size: fileToUpload.size,
+                    text: data.text,
+                    timestamp: Date.now(),
+                    isExtracted: true
+                };
+                localStorage.setItem(currentCacheKey, JSON.stringify(payload));
+
+            } catch (err) {
+                console.error('转写失败:', err);
+                resultArea.value = '转写失败：' + err.message;
+                resultBox.classList.add('active');
+            } finally {
+                clearInterval(timerInterval);
+                statusDiv.classList.remove('active');
+                extractionNotice.classList.remove('visible');
+                douyinParseBtn.disabled = !isVerified;
+            }
+        }
+
+        douyinParseBtn.addEventListener('click', transcribeFromUrl);
 
         copyBtn.addEventListener('click', () => {
             if (!resultArea.value) return;
@@ -1614,22 +1674,6 @@
                 if (videoUrlInput.value !== matches[0]) {
                     videoUrlInput.value = matches[0];
                 }
-            }
-
-            if (videoUrlInput.value.trim()) {
-                fileInput.value = '';
-                const fileInfoArea = document.getElementById('fileInfoArea');
-                fileInfoArea.innerHTML = `<span id="fileName">未选择任何文件</span>`;
-                fileInput.processedFile = null;
-                fileInput.originalFile = null;
-                cacheNotice.classList.remove('visible');
-                extractionNotice.classList.remove('visible');
-                resultBox.classList.remove('active');
-                copyBtn.classList.add('hidden');
-            }
-
-            if (isVerified) {
-                submitBtn.disabled = !videoUrlInput.value.trim();
             }
         });
     </script>
