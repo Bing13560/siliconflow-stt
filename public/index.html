@@ -1577,53 +1577,11 @@
                     throw new Error('无法从API返回中解析出有效的视频直链');
                 }
 
-                extractionNoticeText.textContent = '正在从直链下载内容...';
-                const response = await fetch(directVideoUrl);
-                if (!response.ok) throw new Error(`下载失败 (HTTP ${response.status})`);
+                extractionNoticeText.textContent = '正在提交转写任务...';
 
-                const blob = await response.blob();
-                let fileName = "downloaded_file";
-                try {
-                    const contentDisposition = response.headers.get('content-disposition');
-                    if (contentDisposition) {
-                        const match = contentDisposition.match(/filename="?([^"]+)"?/);
-                        if (match) fileName = match[1];
-                    }
-                } catch (e) { /* ignore */ }
-
-                const downloadedFile = new File([blob], fileName, { type: blob.type });
-                
-                let originalFile = downloadedFile;
-                originalFile.nameForCache = extractedUrl;
-
-                let fileToUpload;
-                if (isVideoFile(downloadedFile)) {
-                    fileToUpload = await extractAudioFromVideo(downloadedFile);
-                    fileToUpload.name = 'extracted_audio.wav';
-                } else if (isSupportedAudioFile(downloadedFile)) {
-                    fileToUpload = downloadedFile;
-                } else {
-                    throw new Error('链接指向的文件格式不受支持');
-                }
-
-                const arrayBufferForHash = await fileToUpload.arrayBuffer();
-                const md5 = SparkMD5.ArrayBuffer.hash(arrayBufferForHash);
-                const currentCacheKey = `sf_cache_${md5}`;
-
-                const cachedRaw = localStorage.getItem(currentCacheKey);
-                if (cachedRaw) {
-                    const cachedData = JSON.parse(cachedRaw);
-                    if (cachedData.originalName === originalFile.nameForCache) {
-                        window.restoreRecord(currentCacheKey);
-                        clearInterval(timerInterval);
-                        statusDiv.classList.remove('active');
-                        douyinParseBtn.disabled = !isVerified;
-                        return;
-                    }
-                }
-
+                // 不再在前端下载，而是将直链发送给后端处理
                 const formData = new FormData();
-                formData.append('file', fileToUpload, fileToUpload.name || 'extracted_audio.wav');
+                formData.append('url', directVideoUrl);
                 formData.append('model', 'FunAudioLLM/SenseVoiceSmall');
 
                 const res = await fetch('/transcribe', { method: 'POST', body: formData });
