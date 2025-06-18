@@ -1556,14 +1556,22 @@
                 if (!matches) throw new Error('未在输入中找到有效的URL');
 
                 const extractedUrl = matches[0];
-                const resolverUrl = `https://brhiza-douyinvd-67.deno.dev/?url=${encodeURIComponent(extractedUrl)}`;
-
+                
                 extractionNotice.classList.add('visible');
                 extractionNoticeText.textContent = '正在解析视频直链...';
 
-                const resolverResponse = await fetch(resolverUrl);
-                if (!resolverResponse.ok) throw new Error(`解析失败 (HTTP ${resolverResponse.status})`);
-                const directVideoUrl = await resolverResponse.text();
+                const resolverResponse = await fetch('/parse-url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: extractedUrl })
+                });
+
+                if (!resolverResponse.ok) {
+                    const errorText = await resolverResponse.text();
+                    throw new Error(`解析失败 (HTTP ${resolverResponse.status}): ${errorText}`);
+                }
+                
+                const { directUrl: directVideoUrl } = await resolverResponse.json();
 
                 if (!directVideoUrl.startsWith('http')) {
                     throw new Error('无法从API返回中解析出有效的视频直链');
