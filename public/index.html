@@ -1450,6 +1450,13 @@
             const videoUrl = videoUrlInput.value.trim();
             const file = fileInput.files[0];
 
+            // 根据输入方式动态调整 required 属性，防止表单验证错误
+            if (videoUrl) {
+                fileInput.required = false;
+            } else {
+                fileInput.required = true;
+            }
+
             if (!videoUrl && !file) {
                 alert('请选择一个文件或粘贴一个链接');
                 return;
@@ -1580,6 +1587,7 @@
                 statusDiv.classList.remove('active');
                 extractionNotice.classList.remove('visible');
                 submitBtn.disabled = !isVerified;
+                fileInput.required = true; // 恢复 required 属性
             }
         });
 
