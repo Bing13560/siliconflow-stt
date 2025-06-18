@@ -1551,16 +1551,15 @@
             }, 1000);
 
             try {
+                // 1. 解析分享链接中的URL
                 const urlRegex = /(https?:\/\/[^\s]+)/g;
                 const matches = videoUrl.match(urlRegex);
                 if (!matches) throw new Error('未在输入中找到有效的URL');
-
                 const extractedUrl = matches[0];
 
-                // Use a hash of the original URL as the cache key
-                const md5 = SparkMD5.hash(extractedUrl);
-                const currentCacheKey = `sf_cache_${md5}`;
-
+                // 2. 检查缓存
+                const urlHash = SparkMD5.hash(extractedUrl);
+                const currentCacheKey = `sf_cache_${urlHash}`;
                 const cachedRaw = localStorage.getItem(currentCacheKey);
                 if (cachedRaw) {
                     const cachedData = JSON.parse(cachedRaw);
@@ -1572,47 +1571,63 @@
                         return;
                     }
                 }
-                
+
+                // 3. 从后端获取视频直链
                 extractionNotice.classList.add('visible');
                 extractionNoticeText.textContent = '正在解析视频直链...';
-
                 const resolverResponse = await fetch('/parse-url', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ url: extractedUrl })
                 });
-
                 if (!resolverResponse.ok) {
                     const errorText = await resolverResponse.text();
                     throw new Error(`解析失败 (HTTP ${resolverResponse.status}): ${errorText}`);
                 }
-                
                 const { directUrl: directVideoUrl } = await resolverResponse.json();
-
-                if (!directVideoUrl.startsWith('http')) {
+                if (!directVideoUrl || !directVideoUrl.startsWith('http')) {
                     throw new Error('无法从API返回中解析出有效的视频直链');
                 }
 
-                extractionNoticeText.textContent = '正在提交转写任务...';
+                // 4. 通过我们的后端代理下载视频，以绕过CORS限制
+                extractionNoticeText.textContent = '正在下载视频文件...';
+                const videoResponse = await fetch('/proxy-download', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: directVideoUrl })
+                });
+                if (!videoResponse.ok) throw new Error('通过代理下载视频文件失败');
+                const videoBlob = await videoResponse.blob();
 
-                // 不再在前端下载，而是将直链发送给后端处理
+                // 5. 在前端提取音频
+                // 我们需要给 videoBlob 一个 name 属性，以便 extractAudioFromVideo 函数使用
+                videoBlob.name = `douyin_video_${Date.now()}.mp4`;
+                if (!checkFileSizeAndWarn(videoBlob)) {
+                    throw new Error("操作取消：文件过大。");
+                }
+                const audioWavBlob = await extractAudioFromVideo(videoBlob);
+
+                // 6. 上传提取出的音频文件
+                extractionNoticeText.textContent = '正在上传音频并转写...';
                 const formData = new FormData();
-                formData.append('url', directVideoUrl);
+                formData.append('file', audioWavBlob, 'extracted_audio.wav');
                 formData.append('model', 'FunAudioLLM/SenseVoiceSmall');
 
                 const res = await fetch('/transcribe', { method: 'POST', body: formData });
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
+                
                 const data = await res.json();
+                if (data.code && data.code !== 200) throw new Error(data.message || `API返回错误码: ${data.code}`);
                 resultArea.value = data.text;
 
                 resultBox.classList.add('active');
                 copyBtn.classList.remove('hidden');
 
+                // 7. 保存到缓存
                 const payload = {
                     name: `抖音视频 - ${new URL(extractedUrl).pathname.split('/').pop()}`,
                     originalName: extractedUrl,
-                    size: 0, // Size is not applicable for URL-based transcription
+                    size: 0, // 大小对于URL转写不重要
                     text: data.text,
                     timestamp: Date.now(),
                     isExtracted: true
