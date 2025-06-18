@@ -1602,7 +1602,9 @@
                 // --- 调试代码开始 ---
                 const debugText = `[DEBUG] 从代理下载的 Blob 信息:\n- Size: ${videoBlob.size} bytes\n- Type: ${videoBlob.type}`;
                 resultArea.value = debugText;
-                throw new Error("已暂停，请检查 Blob 调试信息。");
+                resultBox.classList.add('active'); // 确保结果框可见
+                // 不要抛出错误，而是直接返回，以防止进入catch块覆盖调试信息
+                return;
                 // --- 调试代码结束 ---
 
                 // 5. 在前端提取音频
