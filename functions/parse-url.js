@@ -12,7 +12,11 @@ export async function onRequest(context) {
 
     const resolverUrl = `https://brhiza-douyinvd-67.deno.dev/?url=${encodeURIComponent(url)}`;
 
-    const response = await fetch(resolverUrl);
+    const response = await fetch(resolverUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
 
     if (!response.ok) {
       // 将外部服务的错误状态转发给客户端
