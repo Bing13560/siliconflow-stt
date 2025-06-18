@@ -42,7 +42,15 @@ export async function onRequestPost({ request, env }) {
   );
 
   const data = await resp.json();
-  return new Response(JSON.stringify(data), {
+
+  // 为了调试，我们将原始响应包装在一个新对象中
+  // 以便在前端检查其结构。
+  const debugResponse = {
+      originalResponse: data,
+      extractedText: data.text // 这将帮助我们看到 .text 是否直接存在
+  };
+
+  return new Response(JSON.stringify(debugResponse), {
     headers: { 'Content-Type': 'application/json' }
   });
 }

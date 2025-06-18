@@ -1497,7 +1497,9 @@
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
                 const data = await res.json();
-                resultArea.value = data.text;
+                console.log('Debug Response from /transcribe (file upload):', data);
+                resultArea.value = data.originalResponse ? data.originalResponse.text : JSON.stringify(data);
+
 
                 resultBox.classList.add('active');
                 copyBtn.classList.remove('hidden');
@@ -1604,7 +1606,8 @@
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
                 const data = await res.json();
-                resultArea.value = data.text;
+                console.log('Debug Response from /transcribe (URL):', data);
+                resultArea.value = data.originalResponse ? data.originalResponse.text : JSON.stringify(data);
 
                 resultBox.classList.add('active');
                 copyBtn.classList.remove('hidden');
