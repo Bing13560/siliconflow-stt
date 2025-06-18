@@ -8,15 +8,15 @@
     <title>wofew | 智能语音转文字</title>
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
+            --primary: #111827; /* Black */
+            --primary-hover: #374151; /* Dark Gray */
             --success: #10b981;
             --success-hover: #059669;
-            --background: #f8fafc;
-            --card-bg: #ffffff;
-            --text-primary: #1f2937;
-            --text-secondary: #6b7280;
-            --border-color: #e5e7eb;
+            --background: #f9fafb; /* Light Gray */
+            --card-bg: #ffffff; /* White */
+            --text-primary: #1f2937; /* Dark Text */
+            --text-secondary: #6b7280; /* Medium Text */
+            --border-color: #e5e7eb; /* Light Border */
             --border-radius: 1rem; /* 16px */
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
             --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
@@ -61,7 +61,7 @@
         }
         
         h1 span {
-            color: var(--primary);
+            color: #E72410;
         }
 
         .card {
@@ -99,7 +99,7 @@
 
         /* 验证按钮样式 */
         .verify-btn {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            background-color: var(--primary);
             color: white;
             border: none;
             padding: 6px 14px;
@@ -108,23 +108,24 @@
             font-size: 0.85rem;
             font-weight: 500;
             transition: all 0.2s;
-            box-shadow: 0 2px 6px rgba(245, 158, 11, 0.25);
+            box-shadow: var(--shadow-sm);
             white-space: nowrap;
         }
 
         .verify-btn:hover {
-            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            background-color: var(--primary-hover);
             transform: translateY(-1px);
-            box-shadow: 0 3px 8px rgba(245, 158, 11, 0.3);
+            box-shadow: var(--shadow-md);
         }
 
         .verify-btn.verified {
-            background: linear-gradient(135deg, var(--success) 0%, #16a34a 100%);
+            background: var(--success);
             box-shadow: 0 2px 6px rgba(34, 197, 94, 0.25);
+            color: white;
         }
 
         .verify-btn.verified:hover {
-            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            background: var(--success-hover);
             box-shadow: 0 3px 8px rgba(34, 197, 94, 0.3);
         }
 
@@ -150,8 +151,8 @@
 
         /* 缓存提示样式 */
         .cache-notice {
-            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-            border: 1px solid #86efac;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
             border-radius: 12px;
             padding: 16px 20px;
             margin: 16px 0;
@@ -159,7 +160,7 @@
             align-items: center;
             gap: 12px;
             font-size: 0.9rem;
-            color: #166534;
+            color: #065f46;
             animation: slideDown 0.3s ease-out;
         }
 
@@ -171,7 +172,7 @@
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            background: #22c55e;
+            background: #10b981;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -187,7 +188,7 @@
 
         /* 缓存管理按钮 */
         .cache-btn {
-            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            background-color: var(--primary);
             color: white;
             border: none;
             padding: 8px 16px;
@@ -196,14 +197,14 @@
             font-size: 0.85rem;
             font-weight: 500;
             transition: all 0.2s;
-            box-shadow: 0 2px 6px rgba(139, 92, 246, 0.25);
+            box-shadow: var(--shadow-sm);
             margin-left: 8px;
         }
 
         .cache-btn:hover {
-            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            background-color: var(--primary-hover);
             transform: translateY(-1px);
-            box-shadow: 0 3px 8px rgba(139, 92, 246, 0.3);
+            box-shadow: var(--shadow-md);
         }
 
         /* 模态框样式 */
@@ -233,7 +234,7 @@
             max-width: 90vw;
             max-height: 80vh;
             overflow-y: auto;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
             animation: slideUp 0.3s ease-out;
             position: relative;
         }
@@ -244,7 +245,7 @@
             justify-content: space-between;
             margin-bottom: 20px;
             padding-bottom: 12px;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .modal-header h3 {
@@ -265,7 +266,7 @@
         }
 
         .close-btn:hover {
-            background: #f1f5f9;
+            background: #f3f4f6;
             color: var(--text-primary);
         }
 
@@ -280,11 +281,11 @@
         .cache-table td {
             padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .cache-table th {
-            background: #f8fafc;
+            background: #f9fafb;
             font-weight: 600;
             color: var(--text-primary);
             font-size: 0.85rem;
@@ -296,7 +297,7 @@
         }
 
         .cache-table tr:hover {
-            background: #f8fafc;
+            background: #f9fafb;
         }
 
         .cache-actions {
@@ -314,21 +315,21 @@
         }
 
         .restore-btn {
-            background: #ddd6fe;
-            color: #7c3aed;
+            background: #e5e7eb; /* Light Gray */
+            color: #374151; /* Dark Gray */
         }
 
         .restore-btn:hover {
-            background: #c4b5fd;
+            background: #d1d5db; /* Gray */
         }
 
         .delete-btn {
-            background: #fecaca;
-            color: #dc2626;
+            background: #fee2e2;
+            color: #b91c1c;
         }
 
         .delete-btn:hover {
-            background: #fca5a5;
+            background: #fecaca;
         }
 
         .text-preview {
@@ -347,7 +348,7 @@
         }
 
         .clear-all-btn {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            background: #ef4444;
             color: white;
             border: none;
             padding: 8px 16px;
@@ -360,14 +361,14 @@
         }
 
         .clear-all-btn:hover {
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            background: #dc2626;
             transform: translateY(-1px);
         }
 
         /* 音频提取提示样式 */
         .audio-extraction-notice {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border: 1px solid #f59e0b;
+            background: #fef3c7;
+            border: 1px solid #fde68a;
             border-radius: 12px;
             padding: 16px 20px;
             margin: 16px 0;
@@ -410,14 +411,14 @@
             width: 48px;
             height: 48px;
             border-radius: 14px;
-            background: rgba(67, 97, 238, 0.1);
+            background: #f3f4f6; /* Lighter Gray */
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
         .icon-box.success {
-            background: rgba(34, 197, 94, 0.1);
+            background: #d1fae5;
         }
 
         .icon-box svg {
@@ -438,8 +439,8 @@
         }
 
         .format-tag {
-            background-color: #eef2ff;
-            color: var(--primary);
+            background-color: #e5e7eb; /* Light Gray */
+            color: #374151; /* Dark Gray */
             padding: 0.375rem 0.75rem;
             border-radius: 0.5rem;
             font-size: 0.875rem;
@@ -463,13 +464,13 @@
 
         .file-upload-area:hover {
             border-color: var(--primary);
-            background-color: #f5f3ff;
+            background-color: #f3f4f6;
         }
 
         .upload-icon {
             width: 48px;
             height: 48px;
-            background-color: #eef2ff;
+            background-color: #f3f4f6;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -549,19 +550,19 @@
         }
 
         .btn-download-video {
-            background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
-            box-shadow: 0 4px 12px rgba(251, 146, 60, 0.25);
+            background-color: var(--primary);
+            box-shadow: var(--shadow-sm);
         }
         .btn-download-video:hover {
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            background-color: var(--primary-hover);
         }
 
         .btn-download-audio {
-            background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
-            box-shadow: 0 4px 12px rgba(167, 139, 250, 0.25);
+            background-color: var(--primary);
+            box-shadow: var(--shadow-sm);
         }
         .btn-download-audio:hover {
-            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            background-color: var(--primary-hover);
         }
 
         #status {
@@ -585,8 +586,8 @@
         .spinner {
             width: 24px;
             height: 24px;
-            border: 3px solid rgba(67, 97, 238, 0.2);
-            border-top-color: var(--primary);
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-top-color: #1f2937;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -624,12 +625,12 @@
         #result:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+            box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1);
         }
 
         /* 占位符样式优化 */
         #result::placeholder {
-            color: #9ca3af;
+            color: var(--text-secondary);
             font-style: italic;
             opacity: 0.8;
         }
@@ -640,32 +641,32 @@
         }
 
         #result::-webkit-scrollbar-track {
-            background: rgba(67, 97, 238, 0.05);
+            background: #f1f1f1;
             border-radius: 8px;
         }
 
         #result::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, var(--primary) 0%, #7c4dff 100%);
+            background: #ccc;
             border-radius: 8px;
             transition: all 0.2s;
         }
 
         #result::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, var(--primary-hover) 0%, #6b46c1 100%);
+            background: #aaa;
         }
 
         /* 文本选中效果 */
         #result::selection {
-            background: rgba(67, 97, 238, 0.2);
+            background: #dbeafe;
             color: inherit;
         }
 
         /* 复制按钮同一行右侧 */
         #copyBtn {
-            background: linear-gradient(135deg, var(--success) 0%, #00b894 100%);
+            background: var(--primary);
             padding: 10px 16px;
             border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(34, 197, 94, 0.25);
+            box-shadow: var(--shadow-sm);
             display: inline-flex;
             align-items: center;
             gap: 6px;
@@ -905,7 +906,7 @@
 
             <div class="url-input-area" style="margin-bottom: 16px; position: relative;">
                 <input type="text" id="videoUrlInput"
-                    style="width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid #c7d2fe; transition: all 0.2s; font-size: 0.95rem; background: rgba(247, 249, 254, 0.6);"
+                    style="width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border-color); transition: all 0.2s; font-size: 0.95rem; background: var(--card-bg); color: var(--text-primary);"
                     placeholder="在此处粘贴视频或抖音分享链接">
             </div>
             <div id="urlActions" class="url-actions-container">
@@ -1332,7 +1333,7 @@
                         downloadLink.href = URL.createObjectURL(processedFile);
                         downloadLink.download = newName;
                         downloadLink.textContent = '下载音频';
-                        downloadLink.style.cssText = `background:#8b5cf6;color:white;padding:4px 10px;border-radius:6px;text-decoration:none;font-weight:500;`;
+                        downloadLink.style.cssText = `background:var(--primary);color:white;padding:4px 10px;border-radius:6px;text-decoration:none;font-weight:500;`;
                         fileInfoArea.innerHTML = `<span id="fileName">${fileNameText}</span>`;
                         fileInfoArea.appendChild(downloadLink);
                     } catch (error) {
