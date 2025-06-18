@@ -1556,6 +1556,22 @@
                 if (!matches) throw new Error('未在输入中找到有效的URL');
 
                 const extractedUrl = matches[0];
+
+                // Use a hash of the original URL as the cache key
+                const md5 = SparkMD5.hash(extractedUrl);
+                const currentCacheKey = `sf_cache_${md5}`;
+
+                const cachedRaw = localStorage.getItem(currentCacheKey);
+                if (cachedRaw) {
+                    const cachedData = JSON.parse(cachedRaw);
+                    if (cachedData.originalName === extractedUrl) {
+                        window.restoreRecord(currentCacheKey);
+                        clearInterval(timerInterval);
+                        statusDiv.classList.remove('active');
+                        douyinParseBtn.disabled = !isVerified;
+                        return;
+                    }
+                }
                 
                 extractionNotice.classList.add('visible');
                 extractionNoticeText.textContent = '正在解析视频直链...';
@@ -1594,9 +1610,9 @@
                 copyBtn.classList.remove('hidden');
 
                 const payload = {
-                    name: fileToUpload.name || 'extracted_audio.wav',
-                    originalName: originalFile.nameForCache,
-                    size: fileToUpload.size,
+                    name: `抖音视频 - ${new URL(extractedUrl).pathname.split('/').pop()}`,
+                    originalName: extractedUrl,
+                    size: 0, // Size is not applicable for URL-based transcription
                     text: data.text,
                     timestamp: Date.now(),
                     isExtracted: true
