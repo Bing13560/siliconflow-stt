@@ -1599,6 +1599,12 @@
                 if (!videoResponse.ok) throw new Error('通过代理下载视频文件失败');
                 const videoBlob = await videoResponse.blob();
 
+                // --- 调试代码开始 ---
+                const debugText = `[DEBUG] 从代理下载的 Blob 信息:\n- Size: ${videoBlob.size} bytes\n- Type: ${videoBlob.type}`;
+                resultArea.value = debugText;
+                throw new Error("已暂停，请检查 Blob 调试信息。");
+                // --- 调试代码结束 ---
+
                 // 5. 在前端提取音频
                 // 我们需要给 videoBlob 一个 name 属性，以便 extractAudioFromVideo 函数使用
                 videoBlob.name = `douyin_video_${Date.now()}.mp4`;
