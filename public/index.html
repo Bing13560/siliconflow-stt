@@ -1005,6 +1005,7 @@
         const closeModal = document.getElementById('closeModal');
         const extractionNotice = document.getElementById('extractionNotice');
         const extractionNoticeText = document.getElementById('extractionNoticeText');
+        const videoUrlInput = document.getElementById('videoUrlInput');
 
         // 检查文件是否为视频格式
         function isVideoFile(file) {
@@ -1144,7 +1145,7 @@
             if (verified) {
                 verifyBtn.textContent = '已验证';
                 verifyBtn.classList.add('verified');
-                submitBtn.disabled = !fileInput.files[0] && !fileInput.processedFile;
+                submitBtn.disabled = !fileInput.files[0] && !fileInput.processedFile && !videoUrlInput.value.trim();
             } else {
                 verifyBtn.textContent = '口令验证';
                 verifyBtn.classList.remove('verified');
@@ -1331,6 +1332,9 @@
 
         fileInput.addEventListener('change', async () => {
             const file = fileInput.files[0];
+            if (file) {
+                videoUrlInput.value = '';
+            }
             const fileInfoArea = document.getElementById('fileInfoArea');
             fileInfoArea.innerHTML = `<span id="fileName">未选择任何文件</span>`;
             if (!file) {
@@ -1481,12 +1485,21 @@
                     if (!matches) throw new Error('未在输入中找到有效的URL');
 
                     const extractedUrl = matches[0];
-                    const finalUrl = `https://brhiza-douyinvd-67.deno.dev/?url=${encodeURIComponent(extractedUrl)}`;
+                    const resolverUrl = `https://brhiza-douyinvd-67.deno.dev/?url=${encodeURIComponent(extractedUrl)}`;
 
                     extractionNotice.classList.add('visible');
-                    extractionNoticeText.textContent = '正在从链接下载内容...';
+                    extractionNoticeText.textContent = '正在解析视频直链...';
 
-                    const response = await fetch(finalUrl);
+                    const resolverResponse = await fetch(resolverUrl);
+                    if (!resolverResponse.ok) throw new Error(`解析失败 (HTTP ${resolverResponse.status})`);
+                    const directVideoUrl = await resolverResponse.text();
+
+                    if (!directVideoUrl.startsWith('http')) {
+                        throw new Error('无法从API返回中解析出有效的视频直链');
+                    }
+
+                    extractionNoticeText.textContent = '正在从直链下载内容...';
+                    const response = await fetch(directVideoUrl);
                     if (!response.ok) throw new Error(`下载失败 (HTTP ${response.status})`);
 
                     const blob = await response.blob();
@@ -1498,7 +1511,7 @@
                             const match = contentDisposition.match(/filename="?([^"]+)"?/);
                             if (match) fileName = match[1];
                         }
-                    } catch(e) { /* ignore */ }
+                    } catch (e) { /* ignore */ }
 
                     const downloadedFile = new File([blob], fileName, { type: blob.type });
                     
@@ -1583,6 +1596,33 @@
                 copyBtn.textContent = '已复制';
                 setTimeout(() => { copyBtn.textContent = '复制'; }, 2000);
             });
+        });
+
+        videoUrlInput.addEventListener('input', () => {
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const matches = videoUrlInput.value.match(urlRegex);
+            if (matches && matches.length > 0) {
+                // 如果检测到URL，用第一个匹配到的URL替换输入框的全部内容
+                if (videoUrlInput.value !== matches[0]) {
+                    videoUrlInput.value = matches[0];
+                }
+            }
+
+            if (videoUrlInput.value.trim()) {
+                fileInput.value = '';
+                const fileInfoArea = document.getElementById('fileInfoArea');
+                fileInfoArea.innerHTML = `<span id="fileName">未选择任何文件</span>`;
+                fileInput.processedFile = null;
+                fileInput.originalFile = null;
+                cacheNotice.classList.remove('visible');
+                extractionNotice.classList.remove('visible');
+                resultBox.classList.remove('active');
+                copyBtn.classList.add('hidden');
+            }
+
+            if (isVerified) {
+                submitBtn.disabled = !videoUrlInput.value.trim();
+            }
         });
     </script>
 </body>
