@@ -15,7 +15,11 @@ export async function onRequestPost({ request, env }) {
   if (file) {
     body = form;
   } else if (url) {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
     if (!response.ok) {
       return new Response(`Failed to download file from URL: ${url}`, { status: 500 });
     }
