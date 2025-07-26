@@ -836,6 +836,7 @@
       fileInput.addEventListener("change", (e) => {
         if (e.target.files.length > 0) {
           uploadedFileName = e.target.files[0].name.replace(/\.[^/.]+$/, '');
+          console.log("上传的文件名是：", uploadedFileName);
         }
       });
     }
@@ -846,47 +847,9 @@
         const el = document.querySelector(".transcript") || document.querySelector("textarea");
         const text = el?.value || el?.innerText || "转录内容";
         const filename = uploadedFileName + ".docx";
+        console.log("准备生成的 Word 文件名是：", filename);
         generateDocx(text, filename);
       };
-    }
-  });
-</script>
-
-<script>
-  let uploadedFileName = "transcript";
-
-  document.addEventListener("DOMContentLoaded", () => {
-    const fileInput = document.querySelector('input[type=file]');
-    if (fileInput) {
-      fileInput.addEventListener("change", (e) => {
-        if (e.target.files.length > 0) {
-          uploadedFileName = e.target.files[0].name.replace(/\.[^/.]+$/, '');
-        }
-      });
-    }
-
-    const btn = document.querySelector("#download-docx");
-    if (btn) {
-      btn.addEventListener("click", () => {
-        const el = document.querySelector(".transcript") || document.querySelector("textarea");
-        const text = el?.value || el?.innerText || "转录内容";
-        const filename = uploadedFileName + ".docx";
-        generateDocx(text, filename);
-      });
-    }
-  });
-</script>
-
-<script>
-  let uploadedFileName = "transcript";
-  document.addEventListener("DOMContentLoaded", () => {
-    const fileInput = document.querySelector('input[type=file]');
-    if (fileInput) {
-      fileInput.addEventListener("change", (e) => {
-        if (e.target.files.length > 0) {
-          uploadedFileName = e.target.files[0].name.replace(/\.[^/.]+$/, '');
-        }
-      });
     }
   });
 </script>
