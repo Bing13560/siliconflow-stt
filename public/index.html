@@ -828,6 +828,31 @@
 
 <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
 <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    let uploadedFileName = "transcript";
+
+    const fileInput = document.querySelector('input[type=file]');
+    if (fileInput) {
+      fileInput.addEventListener("change", (e) => {
+        if (e.target.files.length > 0) {
+          uploadedFileName = e.target.files[0].name.replace(/\.[^/.]+$/, '');
+        }
+      });
+    }
+
+    const btn = document.querySelector("#download-docx");
+    if (btn) {
+      btn.onclick = () => {
+        const el = document.querySelector(".transcript") || document.querySelector("textarea");
+        const text = el?.value || el?.innerText || "转录内容";
+        const filename = uploadedFileName + ".docx";
+        generateDocx(text, filename);
+      };
+    }
+  });
+</script>
+
+<script>
   let uploadedFileName = "transcript";
 
   document.addEventListener("DOMContentLoaded", () => {
