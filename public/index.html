@@ -1685,6 +1685,16 @@ dropArea.addEventListener('click', () => {
             }
         });
     </script>
+
+<script>
+document.getElementById("download-docx")?.addEventListener("click", () => {
+  const textEl = document.querySelector(".transcript") || document.querySelector("textarea");
+  const text = textEl?.value || textEl?.innerText || "转录内容";
+  const filename = "transcript.docx";
+  generateDocx(text, filename);
+});
+</script>
+
 </body>
 
 </html>
