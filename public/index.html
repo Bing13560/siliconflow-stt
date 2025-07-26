@@ -830,11 +830,14 @@
 
 
 
+
+
+
 <script>
 let uploadedFileName = "transcript";
 
-// 捕获上传的文件名
-document.addEventListener("DOMContentLoaded", () => {
+// 在用户选择文件时保存文件名
+window.addEventListener("DOMContentLoaded", () => {
   const fileInput = document.querySelector('input[type="file"]');
   if (fileInput) {
     fileInput.addEventListener("change", (e) => {
@@ -845,7 +848,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// 添加下载按钮
 window.addEventListener("load", () => {
   const transcriptEl = document.querySelector(".transcript") || document.querySelector("textarea");
 
