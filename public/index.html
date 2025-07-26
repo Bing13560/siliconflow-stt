@@ -1781,6 +1781,30 @@ window.addEventListener("load", () => {
 });
 </script>
 
+
+<script>
+function generateDocx(text, filename) {
+  const { Document, Packer, Paragraph } = window.docx;
+  const doc = new Document({
+    sections: [{
+      properties: {},
+      children: [new Paragraph(text)],
+    }],
+  });
+
+  Packer.toBlob(doc).then(blob => {
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(blobUrl);
+  });
+}
+</script>
+
 </body>
 
 </html>
