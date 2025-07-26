@@ -828,64 +828,6 @@
 
 <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    let uploadedFileName = "transcript";
-
-    const fileInput = document.querySelector('input[type=file]');
-    if (fileInput) {
-      fileInput.addEventListener("change", (e) => {
-        if (e.target.files.length > 0) {
-          uploadedFileName = e.target.files[0].name.replace(/\.[^/.]+$/, '');
-          console.log("上传的文件名是：", uploadedFileName);
-        }
-      });
-    }
-
-    function cleanFileName(name) {
-      return name.replace(/[^\w\u4e00-\u9fa5-]/g, "_");
-    }
-
-    const btn = document.querySelector("#download-docx");
-    if (btn) {
-      btn.addEventListener("click", () => {
-        const el = document.querySelector(".transcript") || document.querySelector("textarea");
-        const text = el?.value || el?.innerText || "转录内容";
-        const safeFileName = cleanFileName(uploadedFileName) + ".docx";
-        console.log("准备生成的 Word 文件名是：", safeFileName);
-        generateDocx(text, safeFileName);
-      });
-    }
-  });
-</script>
-
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    let uploadedFileName = "transcript";
-
-    const fileInput = document.querySelector('input[type=file]');
-    if (fileInput) {
-      fileInput.addEventListener("change", (e) => {
-        if (e.target.files.length > 0) {
-          uploadedFileName = e.target.files[0].name.replace(/\.[^/.]+$/, '');
-          console.log("上传的文件名是：", uploadedFileName);
-        }
-      });
-    }
-
-    const btn = document.querySelector("#download-docx");
-    if (btn) {
-      btn.onclick = () => {
-        const el = document.querySelector(".transcript") || document.querySelector("textarea");
-        const text = el?.value || el?.innerText || "转录内容";
-        const filename = uploadedFileName + ".docx";
-        console.log("准备生成的 Word 文件名是：", filename);
-        generateDocx(text, filename);
-      };
-    }
-  });
-</script>
-
-<script>
   function generateDocx(text, filename) {
     const { Document, Packer, Paragraph } = window.docx;
 
@@ -1779,30 +1721,6 @@ window.addEventListener("load", () => {
     });
   }
 });
-</script>
-
-
-<script>
-function generateDocx(text, filename) {
-  const { Document, Packer, Paragraph } = window.docx;
-  const doc = new Document({
-    sections: [{
-      properties: {},
-      children: [new Paragraph(text)],
-    }],
-  });
-
-  Packer.toBlob(doc).then(blob => {
-    const blobUrl = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = blobUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(blobUrl);
-  });
-}
 </script>
 
 </body>
