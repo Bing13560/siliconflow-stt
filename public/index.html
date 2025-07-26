@@ -841,6 +841,37 @@
       });
     }
 
+    function cleanFileName(name) {
+      return name.replace(/[^\w\u4e00-\u9fa5-]/g, "_");
+    }
+
+    const btn = document.querySelector("#download-docx");
+    if (btn) {
+      btn.addEventListener("click", () => {
+        const el = document.querySelector(".transcript") || document.querySelector("textarea");
+        const text = el?.value || el?.innerText || "转录内容";
+        const safeFileName = cleanFileName(uploadedFileName) + ".docx";
+        console.log("准备生成的 Word 文件名是：", safeFileName);
+        generateDocx(text, safeFileName);
+      });
+    }
+  });
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    let uploadedFileName = "transcript";
+
+    const fileInput = document.querySelector('input[type=file]');
+    if (fileInput) {
+      fileInput.addEventListener("change", (e) => {
+        if (e.target.files.length > 0) {
+          uploadedFileName = e.target.files[0].name.replace(/\.[^/.]+$/, '');
+          console.log("上传的文件名是：", uploadedFileName);
+        }
+      });
+    }
+
     const btn = document.querySelector("#download-docx");
     if (btn) {
       btn.onclick = () => {
