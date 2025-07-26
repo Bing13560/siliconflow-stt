@@ -833,45 +833,49 @@
 
 
 
+
+
+
 <script>
-let uploadedFileName = "transcript";
+  let uploadedFileName = "transcript";
 
-// 在用户选择文件时保存文件名
-window.addEventListener("DOMContentLoaded", () => {
-  const fileInput = document.querySelector('input[type="file"]');
-  if (fileInput) {
-    fileInput.addEventListener("change", (e) => {
-      if (e.target.files.length > 0) {
-        uploadedFileName = e.target.files[0].name.replace(/\.[^/.]+$/, '');
-      }
-    });
-  }
-});
+  // 尝试绑定 input[type=file] 以记录音频文件名
+  window.addEventListener("DOMContentLoaded", () => {
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) {
+      fileInput.addEventListener("change", (e) => {
+        if (e.target.files.length > 0) {
+          uploadedFileName = e.target.files[0].name.replace(/\.[^/.]+$/, '');
+        }
+      });
+    }
+  });
 
-window.addEventListener("load", () => {
-  const transcriptEl = document.querySelector(".transcript") || document.querySelector("textarea");
+  // 插入按钮并使用变量命名文件
+  window.addEventListener("load", () => {
+    const transcriptEl = document.querySelector(".transcript") || document.querySelector("textarea");
 
-  if (transcriptEl) {
-    const btn = document.createElement("button");
-    btn.id = "download-docx";
-    btn.textContent = "下载 Word";
-    btn.style.marginTop = "10px";
-    btn.style.marginLeft = "8px";
-    btn.style.padding = "6px 12px";
-    btn.style.borderRadius = "6px";
-    btn.style.border = "1px solid #ccc";
-    btn.style.background = "#f2f2f2";
-    btn.style.cursor = "pointer";
+    if (transcriptEl) {
+      const btn = document.createElement("button");
+      btn.id = "download-docx";
+      btn.textContent = "下载 Word";
+      btn.style.marginTop = "10px";
+      btn.style.marginLeft = "8px";
+      btn.style.padding = "6px 12px";
+      btn.style.borderRadius = "6px";
+      btn.style.border = "1px solid #ccc";
+      btn.style.background = "#f2f2f2";
+      btn.style.cursor = "pointer";
 
-    transcriptEl.parentNode.insertBefore(btn, transcriptEl.nextSibling);
+      transcriptEl.parentNode.insertBefore(btn, transcriptEl.nextSibling);
 
-    btn.addEventListener("click", () => {
-      const text = transcriptEl.value || transcriptEl.innerText || "转录内容";
-      const filename = uploadedFileName + ".docx";
-      generateDocx(text, filename);
-    });
-  }
-});
+      btn.addEventListener("click", () => {
+        const text = transcriptEl.value || transcriptEl.innerText || "转录内容";
+        const filename = uploadedFileName + ".docx";
+        generateDocx(text, filename);
+      });
+    }
+  });
 </script>
 
 </body>
