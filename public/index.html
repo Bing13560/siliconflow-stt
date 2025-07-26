@@ -827,6 +827,20 @@
     </style>
 
 <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+<script>
+  let uploadedFileName = "transcript";
+  document.addEventListener("DOMContentLoaded", () => {
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) {
+      fileInput.addEventListener("change", (e) => {
+        if (e.target.files.length > 0) {
+          uploadedFileName = e.target.files[0].name.replace(/\.[^/.]+$/, '');
+        }
+      });
+    }
+  });
+</script>
+
 
 
 
