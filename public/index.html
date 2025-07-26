@@ -825,6 +825,31 @@
             }
         }
     </style>
+
+<script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+<script>
+  function generateDocx(text, filename) {
+    const { Document, Packer, Paragraph } = window.docx;
+
+    const doc = new Document({
+      sections: [
+        {
+          properties: {},
+          children: [new Paragraph(text)],
+        },
+      ],
+    });
+
+    Packer.toBlob(doc).then((blob) => {
+      const docxFilename = filename.replace(/\.[^/.]+$/, '') + ".docx";
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = docxFilename;
+      link.click();
+    });
+  }
+</script>
+
 </head>
 
 <body>
