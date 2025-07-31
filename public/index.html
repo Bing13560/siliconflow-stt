@@ -976,6 +976,7 @@
         let cacheKey = null;
         let timerInterval;
         let authStatusTimer; // Timer for hiding the auth status message
+        let currentFileName = 'transcript.docx';
         const AUTH_KEY = 'sf_auth_status';
         const verifyBtn = document.getElementById('verifyBtn');
         const cacheBtn = document.getElementById('cacheBtn');
@@ -1293,6 +1294,7 @@
         window.restoreRecord = function (key) {
             try {
                 const data = JSON.parse(localStorage.getItem(key));
+                currentFileName = data.originalName || data.name;
                 resultArea.value = data.text;
                 resultBox.classList.add('active');
                 copyBtn.classList.remove('hidden');
@@ -1336,6 +1338,8 @@
                 updateAuthUI(isVerified);
                 return;
             }
+
+            currentFileName = file.name;
 
             cacheNotice.classList.remove('visible');
             extractionNotice.classList.remove('visible');
@@ -1643,6 +1647,7 @@ dropArea.addEventListener('click', () => {
                     isExtracted: true
                 };
                 localStorage.setItem(currentCacheKey, JSON.stringify(payload));
+                currentFileName = payload.name;
 
 
             } catch (err) {
@@ -1690,8 +1695,7 @@ dropArea.addEventListener('click', () => {
 document.getElementById("download-docx")?.addEventListener("click", () => {
   const textEl = document.querySelector(".transcript") || document.querySelector("textarea");
   const text = textEl?.value || textEl?.innerText || "转录内容";
-  const filename = "transcript.docx";
-  generateDocx(text, filename);
+  generateDocx(text, currentFileName);
 });
 </script>
 
@@ -1716,8 +1720,7 @@ window.addEventListener("load", () => {
 
     btn.addEventListener("click", () => {
       const text = transcriptEl.value || transcriptEl.innerText || "转录内容";
-      const filename = "transcript.docx";
-      generateDocx(text, filename);
+      generateDocx(text, currentFileName);
     });
   }
 });
