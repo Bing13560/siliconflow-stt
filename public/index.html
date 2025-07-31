@@ -1587,10 +1587,11 @@ dropArea.addEventListener('click', () => {
                     const errorText = await resolverResponse.text();
                     throw new Error(`解析失败 (HTTP ${resolverResponse.status}): ${errorText}`);
                 }
-                const { directUrl: directVideoUrl } = await resolverResponse.json();
+                const { directUrl: directVideoUrl, title: videoTitle } = await resolverResponse.json();
                 if (!directVideoUrl || !directVideoUrl.startsWith('http')) {
                     throw new Error('无法从API返回中解析出有效的视频直链');
                 }
+                currentFileName = videoTitle ? `${videoTitle}.mp4` : `douyin_video_${Date.now()}.mp4`;
 
                 // 4. 通过我们的后端代理下载视频，以绕过CORS限制
                 extractionNoticeText.textContent = '正在下载视频文件...';
@@ -1639,8 +1640,8 @@ dropArea.addEventListener('click', () => {
 
                 // 7. 保存到缓存
                 const payload = {
-                    name: `抖音视频 - ${new URL(extractedUrl).pathname.split('/').pop()}`,
-                    originalName: extractedUrl,
+                    name: currentFileName,
+                    originalName: currentFileName,
                     size: 0, // 大小对于URL转写不重要
                     text: data.text,
                     timestamp: Date.now(),

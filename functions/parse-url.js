@@ -7,9 +7,9 @@ export async function onRequestPost({ request }) {
       return new Response('URL is required', { status: 400 });
     }
 
-    const directUrl = await getVideoUrl(url);
+    const { directUrl, title } = await getVideoUrl(url);
 
-    return new Response(JSON.stringify({ directUrl }), {
+    return new Response(JSON.stringify({ directUrl, title }), {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
