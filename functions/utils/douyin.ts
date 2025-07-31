@@ -1,5 +1,5 @@
 const videoIdPattern = /"video":{"play_addr":{"uri":"([a-z0-9]+)"/;
-const titlePattern = /<title>(.*?)<\/title>/;
+const descPattern = /"desc":"([^"]*)"/;
 const cVUrl =
   "https://www.iesdouyin.com/aweme/v1/play/?video_id=%s&ratio=1080p&line=0";
 
@@ -21,7 +21,7 @@ async function getVideoInfo(url: string): Promise<{ videoId: string; title: stri
   if (!videoIdMatch || !videoIdMatch[1]) throw new Error("Video ID not found in URL");
   const videoId = videoIdMatch[1];
 
-  const titleMatch = titlePattern.exec(body);
+  const titleMatch = descPattern.exec(body);
   const title = titleMatch ? titleMatch[1] : 'Douyin Video'; // Fallback title
 
   return { videoId, title };
